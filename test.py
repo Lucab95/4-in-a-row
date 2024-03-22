@@ -4,7 +4,7 @@ import unittest
 class Test(unittest.TestCase):
 
     def setUp(self):
-        self.game = GameState(6, 7)
+        self.game = GameState(6, 7, 2)
 
     def test_is_valid_move(self):
         self.assertTrue(0 in self.game.get_valid_moves() )
@@ -12,7 +12,6 @@ class Test(unittest.TestCase):
         self.assertFalse(-1 in self.game.get_valid_moves())
         self.assertFalse(7 in self.game.get_valid_moves())
         self.assertFalse("j" in self.game.get_valid_moves())
-        
     
     def test_horizontal_winner(self):
         for i in range(4):
@@ -25,11 +24,13 @@ class Test(unittest.TestCase):
         self.assertTrue(self.game.is_winner(0))
     
     def test_diagonal_winner(self):
+        # Setting the diagonal manually to avoid changing the perform_move method
+        # perform_move always adds the piece to the lowest possible row
         self.game.board[0][0] = "o"
         self.game.board[1][1] = "o"
         self.game.board[2][2] = "o"
         self.game.board[3][3] = "o"
-        self.assertTrue(self.game.is_winner(1))
+        self.assertTrue(self.game.is_winner(0))
     
     def test_full_column(self):
         for i in range(6):
