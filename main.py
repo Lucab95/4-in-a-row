@@ -24,7 +24,7 @@ class GameState:
         Returns:
             list: A list with the possilbe moves."""
         
-        return [col for col in range(self.columns) if self.board[self.rows -1][col] is "-"]
+        return [col for col in range(self.columns) if self.board[self.rows -1][col] == "-"]
     
     def perform_move(self, move: int, player: str) -> None:
         """perform a move in the game board.
@@ -35,7 +35,7 @@ class GameState:
         """
         
         for row in range(self.rows):
-            if self.board[row][move] is "-":
+            if self.board[row][move] == "-":
                 self.board[row][move] = self.player_simbol[player]
                 break
 
@@ -73,7 +73,7 @@ class GameState:
             bool: True if the board is full, False otherwise.
         """
 
-        return all(self.board[self.rows-1][col] is not "-" for col in range(self.columns))
+        return all(self.board[self.rows-1][col] != "-" for col in range(self.columns))
 
     def print_state(self) -> None:
         """Print the current state of the game."""
