@@ -41,12 +41,12 @@ def draw_menu( screen):
         screen.blit(text, textRect)
         return pos1 ,pos2 , pos3
 
-def draw_game_state(screen, gameState, validMoves, sqSelected, time):
+def draw_game_state(screen, gameState, valid_moves, sqSelected, time):
     """graphics for the game"""
     create_board(screen)  # draw squares on the board
     add_sprites(screen, gameState.board, gameState.letters, gameState.numbers)  # draw pieces on top of squares
     draw_history(screen, gameState.blue_to_move, gameState.history, time)
-    highlight_squares(screen, gameState, validMoves, sqSelected, p.Color("yellow"))
+    highlight_squares(screen, gameState, valid_moves, sqSelected, p.Color("yellow"))
 
 def create_board(screen):
     """draw squares on the board"""

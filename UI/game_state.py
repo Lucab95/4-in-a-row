@@ -49,7 +49,7 @@ class GameState:
         Returns:
             list: A list with the possilbe moves."""
         
-        return [col for col in range(self.columns) if self.board[0][col] == "-"]
+        return [Move(col, self.board) for col in range(self.columns) if self.board[0][col] == "-"]
     
     def perform_move(self, move: Move, player: str) -> None:
         """perform a move in the game board.
