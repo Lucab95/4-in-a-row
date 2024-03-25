@@ -1,17 +1,18 @@
 class Move():
-    # maps keys to values
+    # maps keys to values for connect4 game
     # key : value
-    ranksToRows = {"1": 10, "2": 9, "3": 8, "4": 7, "5": 6, "6": 5, "7": 4, "8": 3, "9": 2, "10": 1, "11": 0}
-    rowToRanks = {v: k for k, v in ranksToRows.items()}
-    filesToCols = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7, "i": 8, "j": 9, "k": 10}
+    # rank : row
+    # file : col
+    filesToCols = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6}
     colsToFiles = {v: k for k, v in filesToCols.items()}
+    
 
-    def __init__(self, statSq, endSq, board):
-        self.startRow = int(statSq[0])
-        self.startCol = int(statSq[1])
-        self.pieceMoved = board[self.startRow][self.startCol]
-        self.moveID = self.startRow * 100000 + self.startCol * 1000
-
+    def __init__(self, col, board):
+        # The column where the piece is played.
+        self.col = col
+        self.row = self.getFirstEmptyRow(board, col)
+        self.piecePlayed = 'o' if board.count('o') <= board.count('x') else 'x' # Assume R starts
+        self.moveID = self.row * 10 + self.col  # Simple unique ID for the move
     """
     Override equals method"""
 
@@ -23,8 +24,11 @@ class Move():
     def __hash__(self):
         return self.moveID
 
+    def getFirstEmptyRow(self, board, col):
+        for row in range(len(board)):
+            if board[row][col] == '-':  # Assuming '-' is the symbol for an empty cell
+                return row
+        return -1  # If the column is full, return -1
+    
     def getNotation(self):
         return self.getRankFile(self.startRow, self.startCol) + "->" + self.getRankFile(self.endRow, self.endCol)
-
-    def getRankFile(self, r, c):
-        return self.colsToFiles[c] + self.rowToRanks[r]

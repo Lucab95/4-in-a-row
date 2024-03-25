@@ -1,4 +1,5 @@
 import random
+from move import Move
 class GameState:
     """Class representing the state of a Connect Four game.
     
@@ -48,19 +49,29 @@ class GameState:
         Returns:
             list: A list with the possilbe moves."""
         
-        return [col for col in range(self.columns) if self.board[self.rows -1][col] == "-"]
+        return [col for col in range(self.columns) if self.board[0][col] == "-"]
     
-    def perform_move(self, move: int, player: str) -> None:
+    def perform_move(self, move: Move, player: str) -> None:
         """perform a move in the game board.
         
         Args:
             move (int): The column where the player wants to place the piece.
             player (str): The player that is performing the move.
         """
-        for row in range(self.rows):
-            if self.board[row][move] == "-":
-                self.board[row][move] = self.player_simbol[player]
+        col = move.col
+        for row in range(self.rows -1, -1, -1):
+            print(row, col, self.board[row][col])
+            if self.board[row][col] == "-":
+                self.board[row][col] = self.player_simbol[player]
+                self.blue_to_move = not self.blue_to_move
                 break
+
+        if self.is_winner(player):
+            self.running = False
+            self.win = self.player_simbol[player]
+        if self.is_board_full():
+            self.running = False
+            self.win = "draw"
 
     def is_winner(self, player) -> bool:
         """Check if the current player won the game
@@ -96,7 +107,7 @@ class GameState:
             bool: True if the board is full, False otherwise.
         """
 
-        return all(self.board[self.rows-1][col] != "-" for col in range(self.columns))
+        return all(self.board[0][col] != "-" for col in range(self.columns))
 
     def print_state(self) -> None:
         """Print the current state of the game."""

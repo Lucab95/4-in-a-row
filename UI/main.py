@@ -12,11 +12,11 @@ MAX_FPS = 15
 IMAGES = {}
 
 """ PARAMETER FOR THE AI"""
-maxDepth = 3
-moveOrdering = False
+max_depth = 3
+move_ordering = False
 iDS = False
 
-def drawMenu( screen):
+def draw_menu( screen):
         center = p.display.get_surface().get_size()[0]/2 -LABEL*2
         font = p.font.SysFont("rockwellgrassettocorsivo", 40)
         text = font.render("Vier op een rij", True, p.Color("blue"))
@@ -41,14 +41,14 @@ def drawMenu( screen):
         screen.blit(text, textRect)
         return pos1 ,pos2 , pos3
 
-def drawGameState(screen, gameState, validMoves, sqSelected, time):
+def draw_game_state(screen, gameState, validMoves, sqSelected, time):
     """graphics for the game"""
-    createBoard(screen)  # draw squares on the board
-    addSprites(screen, gameState.board, gameState.letters, gameState.numbers)  # draw pieces on top of squares
-    drawHistory(screen, gameState.blue_to_move, gameState.history, time)
-    highlightSquares(screen, gameState, validMoves, sqSelected, p.Color("yellow"))
+    create_board(screen)  # draw squares on the board
+    add_sprites(screen, gameState.board, gameState.letters, gameState.numbers)  # draw pieces on top of squares
+    draw_history(screen, gameState.blue_to_move, gameState.history, time)
+    highlight_squares(screen, gameState, validMoves, sqSelected, p.Color("yellow"))
 
-def createBoard(screen):
+def create_board(screen):
     """draw squares on the board"""
     color = p.Color("white")
     for r in range(ROWS):
@@ -58,7 +58,7 @@ def createBoard(screen):
 
 
 """draw pieces on the board"""
-def addSprites(screen, board, letters, numbers):
+def add_sprites(screen, board, letters, numbers):
     """draw letters on board"""
 
     font = p.font.SysFont("rockwellgrassettocorsivo", 28)
@@ -82,7 +82,7 @@ def addSprites(screen, board, letters, numbers):
                 screen.blit(IMAGES[piece], p.Rect(c * SQ_SIZE + LABEL, r * SQ_SIZE + LABEL, SQ_SIZE, SQ_SIZE))
 
 
-def drawHistory(screen, turn, history, time):
+def draw_history(screen, turn, history, time):
     """draw the last 12 moves on the right label"""
     font = p.font.SysFont("rockwellgrassettocorsivo", 15)
     turn = 'Gold' if turn else 'Silver'
@@ -105,12 +105,12 @@ def drawHistory(screen, turn, history, time):
             if i > 11:
                 break
 
-def loadImages():
+def load_images():
     pieces = ["o", "x"]
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
-def highlightSquares(screen, gameState, moves, sqSelected, color):
+def highlight_squares(screen, gameState, moves, sqSelected, color):
     """higlights selected piece possible moves"""
     if sqSelected != ():
         r, c, = sqSelected
@@ -131,15 +131,15 @@ def main():
     print("***Welcome to Connect Four!***")
     screen = p.display.set_mode((WIDTH + LABEL + INFOWIDTH, HEIGHT + LABEL))  # Initializing screen
     clock = p.time.Clock()
-    # gameState = GameState.GameState()
-    # validMoves, captureMoves = gameState.getValidMoves()
-    loadImages()
+    # game_state = GameState.GameState()
+    # valid_moves, capture_moves = game_state.get_valid_moves()
+    load_images()
     running = True
-    runningMenu = True
-    clickedSQ = ()  # tracks the last user's click (row,col)
-    playerClicks = []  # track the clicks [(x,y),(x',y')]
-    while runningMenu:
-        pos = drawMenu(screen)
+    running_menu = True
+    clicked_sq = ()  # tracks the last user's click (row,col)
+    player_clicks = []  # track the clicks [(x,y),(x',y')]
+    while running_menu:
+        pos = draw_menu(screen)
         for e in p.event.get():
             if e.type == p.QUIT:
                 p.quit()
@@ -149,80 +149,82 @@ def main():
                 print(location) # print x,y coords
                 print(pos[0].collidepoint(location))
                 if pos[0].collidepoint(location):
-                    # AI.ControlGold = 0
+                    # AI.control_gold = 0
                     players_number = 2
-                    runningMenu = False
+                    running_menu = False
                 elif pos[1].collidepoint(location):
                     players_number = 1
-                    AI.ControlBlue = 1
-                    runningMenu =False
+                    AI.control_blue = 1
+                    running_menu = False
                 elif pos[2].collidepoint(location):
-                    AI.ControlBlue = 2
-                    runningMenu =False
+                    AI.control_blue = 2
+                    running_menu = False
         screen.fill(p.Color("black"))
-        drawMenu(screen)
+        draw_menu(screen)
         clock.tick(MAX_FPS)
         p.display.flip()
     game_state = GameState(ROWS, COLUMNS, int(players_number))
-    game_state.get_valid_moves()
-    AI = ai_model.AI(maxDepth,moveOrdering, iDS)
-    AI.ControlGold = 0
-    AITurn = False
-    while game_state.running:
-        requiredTime = AI.time_required
-        validMoves = game_state.get_valid_moves()
-        drawGameState(screen, game_state, validMoves, clickedSQ, requiredTime)
+    AI = ai_model.AI(max_depth, move_ordering, iDS)
+    if players_number == 1:
+        ai_playing = True
+    else:
+        ai_playing = False
+    while True:
+        required_time = AI.time_required
+        valid_moves = game_state.get_valid_moves()
+        draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
         if game_state.running:
-            moveMade = False
+            move_made = False
             if game_state.turn_counter != 0:
                 for e in p.event.get():
                     if e.type == p.QUIT:
                         running = False
-                    elif game_state.blue_to_move and AI.control_blue == 1 and AITurn:
-                        AITurn = False
-                        AI.nextAiMove(game_state)
-                        drawGameState(screen, game_state, validMoves, clickedSQ, requiredTime)
-                        moveMade = True
-                        clickedSQ = ()  # reset
-                        playerClicks = []
-                    elif not game_state.blue_to_move and AI.ControlGold == 2 and AITurn:
-                        AITurn = False
-                        AI.nextAiMove(game_state)
-                        drawGameState(screen, game_state, validMoves, clickedSQ, requiredTime)
-                        moveMade = True
-                        clickedSQ = ()  # reset
-                        playerClicks = []
-                    elif e.type == p.MOUSEBUTTONDOWN and AITurn:
+                    # elif game_state.blue_to_move and AI.control_blue == 1 and AITurn:
+                    #     AITurn = False
+                    #     AI.next_ai_move(game_state)
+                    #     draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
+                    #     move_made = True
+                    #     clicked_sq = ()  # reset
+                    #     player_clicks = []
+                    # elif not game_state.blue_to_move and AI.control_blue == 2 and AITurn:
+                    #     AITurn = False
+                    #     AI.next_ai_move(game_state)
+                    #     draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
+                    #     move_made = True
+                    #     clicked_sq = ()  # reset
+                    #     player_clicks = []
+                    elif e.type == p.MOUSEBUTTONDOWN and not ai_playing:
                         location = p.mouse.get_pos()  # get x,y location of mouse
+                        print(location)  # print x,y coords
                         col = (location[0] - LABEL) // SQ_SIZE
                         row = (location[1] - LABEL) // SQ_SIZE
-                        
-                        if col >= 0 and col < COLUMNS and row >= 0 and row < ROWS:
-                            clickedSQ = ()
-                            playerClicks = []
+
+                        if (col < 0 or col >= COLUMNS) or ( row < 0 or row >= ROWS):
+                            print("out of square", row, col)
+                            clicked_sq = ()
                             break
 
-                        move = Move(playerClicks[1], game_state.board)
-                        if move in validMoves:
-                            game_state.performMove(move)
-                            moveMade = True
-                            clickedSQ = ()  # reset
-                            playerClicks = []
-                        else:
-                            playerClicks = [clickedSQ]  # second click and avoid problem when i click black squares
+                        move = Move(col, game_state.board)
+                        print(move, valid_moves)
+
+                        if move.col in valid_moves:
+                            game_state.perform_move(move, game_state.blue_to_move)
+                            move_made = True
+                        clicked_sq = ()  # reset
 
                     #perform the undo of the move
                     elif e.type == p.KEYDOWN:
                         if e.key == p.K_z:
-                            game_state.undoMove()
-                            moveMade = True
+                            game_state.undo_move()
+                            move_made = True
 
-                if moveMade:  # calculate new moves only after a move was made
-                    validMoves =  game_state.get_valid_moves()
-                    AITurn = True #used to align
-                    moveMade = False
+                if move_made:  # calculate new moves only after a move was made
+                    valid_moves =  game_state.get_valid_moves()
+                    
+
+                    move_made = False
             screen.fill(p.Color("black"))
-            drawGameState(screen, game_state, validMoves, clickedSQ, requiredTime)
+            draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
             clock.tick(MAX_FPS)
             p.display.flip()
             if game_state.turn_counter == 0:
@@ -232,7 +234,7 @@ def main():
             text = font.render(game_state.win + " player won", True, p.Color("red"), p.Color("black"))
             textRect = text.get_rect()
             textRect.center = ((WIDTH + LABEL + INFOWIDTH) / 2, HEIGHT / 2)
-            drawGameState(screen, game_state, validMoves, clickedSQ, requiredTime)
+            draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
             screen.blit(text, textRect)
             p.display.flip()
             for e in p.event.get():
