@@ -1,0 +1,2 @@
+I spent around 3 to 4 hours on the assignment. I created a git folder and I will update the code there but planning to implement a UI with pygame and a ui that plays non random move
+The game is functional and it has been tested on ubuntu as well as windows.
