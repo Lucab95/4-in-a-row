@@ -110,20 +110,22 @@ def load_images():
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
-def highlight_squares(screen, gameState, moves, sqSelected, color):
-    """higlights selected piece possible moves"""
-    if sqSelected != ():
-        r, c, = sqSelected
-        if gameState.board[r][c][0] == (
-                'g' if gameState.blue_to_move else 's'):  # selected Square is a piece that can be moved
-            s = p.Surface((SQ_SIZE, SQ_SIZE))
-            s.set_alpha(100)
-            s.fill(p.Color('green'))
-            screen.blit(s, (c * SQ_SIZE + LABEL, r * SQ_SIZE + LABEL))
-            s.fill(color)
-            for move in moves:
-                if move.startRow == r and move.startCol == c:  # all the moves that belong to the pawn in r,c
-                    screen.blit(s, (move.endCol * SQ_SIZE + LABEL, move.endRow * SQ_SIZE + LABEL))
+def highlight_squares(screen, gameState, validMoves, sqSelected, color):
+    """Highlights the lowest empty square in the selected columns"""
+    for move in validMoves:
+        col = move.col
+        # Find the lowest empty row in the column
+        for row in reversed(range(gameState.rows)):  # Start from the bottom
+            if gameState.board[row][col] == "-":
+                # This is the lowest empty slot, highlight it
+                s = p.Surface((SQ_SIZE, SQ_SIZE))
+                s.set_alpha(100)  # Transparency
+                s.fill(color)
+                screen.blit(s, (col * SQ_SIZE + LABEL, row * SQ_SIZE + LABEL))
+                break  # No need to check the rest of the column
+
+
+
                     
 def main():
 
@@ -138,6 +140,7 @@ def main():
     running_menu = True
     clicked_sq = ()  # tracks the last user's click (row,col)
     player_clicks = []  # track the clicks [(x,y),(x',y')]
+    AI = ai_model.AI(max_depth, move_ordering, iDS)
     while running_menu:
         pos = draw_menu(screen)
         for e in p.event.get():
@@ -150,85 +153,103 @@ def main():
                 print(pos[0].collidepoint(location))
                 if pos[0].collidepoint(location):
                     # AI.control_gold = 0
+                    ai_playing = False
                     players_number = 2
                     running_menu = False
                 elif pos[1].collidepoint(location):
                     players_number = 1
-                    AI.control_blue = 1
+                    AI.control_blue = True
                     running_menu = False
+                    ai_playing = True
                 elif pos[2].collidepoint(location):
-                    AI.control_blue = 2
+                    ai_playing = True
+                    AI.control_blue = False
                     running_menu = False
         screen.fill(p.Color("black"))
         draw_menu(screen)
         clock.tick(MAX_FPS)
         p.display.flip()
     game_state = GameState(ROWS, COLUMNS, int(players_number))
-    AI = ai_model.AI(max_depth, move_ordering, iDS)
-    if players_number == 1:
-        ai_playing = True
-    else:
-        ai_playing = False
+        
     while True:
         required_time = AI.time_required
         valid_moves = game_state.get_valid_moves()
         draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
         if game_state.running:
             move_made = False
-            if game_state.turn_counter != 0:
+            if ai_playing and game_state.blue_to_move:
+                # AI makes a move
+                move = AI.random_move(valid_moves)
+                game_state.perform_move(move, game_state.blue_to_move)
+                move_made = True
+            else:
                 for e in p.event.get():
                     if e.type == p.QUIT:
-                        running = False
-                    # elif game_state.blue_to_move and AI.control_blue == 1 and AITurn:
-                    #     AITurn = False
-                    #     AI.next_ai_move(game_state)
-                    #     draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
-                    #     move_made = True
-                    #     clicked_sq = ()  # reset
-                    #     player_clicks = []
-                    # elif not game_state.blue_to_move and AI.control_blue == 2 and AITurn:
-                    #     AITurn = False
-                    #     AI.next_ai_move(game_state)
-                    #     draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
-                    #     move_made = True
-                    #     clicked_sq = ()  # reset
-                    #     player_clicks = []
-                    elif e.type == p.MOUSEBUTTONDOWN and not ai_playing:
+                        p.quit()
+                    elif e.type == p.MOUSEBUTTONDOWN:
                         location = p.mouse.get_pos()  # get x,y location of mouse
-                        print(location)  # print x,y coords
                         col = (location[0] - LABEL) // SQ_SIZE
                         row = (location[1] - LABEL) // SQ_SIZE
 
                         if (col < 0 or col >= COLUMNS) or ( row < 0 or row >= ROWS):
-                            print("out of square", row, col)
                             clicked_sq = ()
                             break
 
                         move = Move(col, game_state.board)
-                        print(move, valid_moves)
 
-                        if move.col in valid_moves:
+                        if move in valid_moves:
                             game_state.perform_move(move, game_state.blue_to_move)
                             move_made = True
                         clicked_sq = ()  # reset
 
-                    #perform the undo of the move
                     elif e.type == p.KEYDOWN:
                         if e.key == p.K_z:
                             game_state.undo_move()
                             move_made = True
 
-                if move_made:  # calculate new moves only after a move was made
-                    valid_moves =  game_state.get_valid_moves()
-                    
 
-                    move_made = False
+
+
+
+
+            
+            # if game_state.turn_counter != 0:
+            #     for e in p.event.get():
+            #         if e.type == p.QUIT:
+            #             running = False
+            #         elif e.type == p.MOUSEBUTTONDOWN and not ai_playing:
+            #             location = p.mouse.get_pos()  # get x,y location of mouse
+            #             print(location)  # print x,y coords
+            #             col = (location[0] - LABEL) // SQ_SIZE
+            #             row = (location[1] - LABEL) // SQ_SIZE
+
+            #             if (col < 0 or col >= COLUMNS) or ( row < 0 or row >= ROWS):
+            #                 clicked_sq = ()
+            #                 break
+
+            #             move = Move(col, game_state.board)
+            #             print(move, valid_moves)
+
+            #             if move in valid_moves:
+            #                 game_state.perform_move(move, game_state.blue_to_move)
+            #                 move_made = True
+            #             clicked_sq = ()  # reset
+
+            #         #perform the undo of the move
+            #         elif e.type == p.KEYDOWN:
+            #             if e.key == p.K_z:
+            #                 game_state.undo_move()
+            #                 move_made = True
+
+            if move_made:  # calculate new moves only after a move was made
+                # valid_moves =  game_state.get_valid_moves()
+                move_made = False
+
+                
             screen.fill(p.Color("black"))
             draw_game_state(screen, game_state, valid_moves, clicked_sq, required_time)
             clock.tick(MAX_FPS)
             p.display.flip()
-            if game_state.turn_counter == 0:
-                game_state.turn_counter = 1
         else:
             font = p.font.SysFont("calibri", 32)
             text = font.render(game_state.win + " player won", True, p.Color("red"), p.Color("black"))

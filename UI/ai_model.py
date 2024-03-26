@@ -18,7 +18,7 @@ class AI():
         self.timerIDS = 5
         self.control_blue = True
     
-    def RandomAI(self, depth, validMoves, captureMoves):
+    def random_move(self, validMoves):
         return random.choice(validMoves)
 
     def evaluationFunction(self, gameState, goldToMove):

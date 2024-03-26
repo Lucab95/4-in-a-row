@@ -48,8 +48,8 @@ class GameState:
         
         Returns:
             list: A list with the possilbe moves."""
-        
-        return [Move(col, self.board) for col in range(self.columns) if self.board[0][col] == "-"]
+        moves = [Move(col, self.board) for col in range(self.columns) if self.board[0][col] == "-"]
+        return moves
     
     def perform_move(self, move: Move, player: str) -> None:
         """perform a move in the game board.
@@ -59,7 +59,7 @@ class GameState:
             player (str): The player that is performing the move.
         """
         col = move.col
-        for row in range(self.rows -1, -1, -1):
+        for row in range(self.rows-1, -1, -1):
             print(row, col, self.board[row][col])
             if self.board[row][col] == "-":
                 self.board[row][col] = self.player_simbol[player]
